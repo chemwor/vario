@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.vario.bubo</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__HOME__/.local/share/claude-voice/venv/bin/python</string>
+    <string>__HOME__/.claude/hooks/bubo.py</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <!-- Restart on crash; a clean exit (another instance holds the lock) is left alone. -->
+  <key>KeepAlive</key><dict><key>SuccessfulExit</key><false/></dict>
+  <key>ThrottleInterval</key><integer>10</integer>
+  <key>ProcessType</key><string>Interactive</string>
+  <key>EnvironmentVariables</key>
+  <dict><key>PATH</key><string>/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin</string></dict>
+  <key>StandardOutPath</key><string>__HOME__/.claude/hooks/bubo.log</string>
+  <key>StandardErrorPath</key><string>__HOME__/.claude/hooks/bubo.log</string>
+</dict>
+</plist>

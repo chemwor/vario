@@ -1,0 +1,71 @@
+name: Release
+# Run it from the Actions tab with the version from VERSION (e.g. 0.1.0). It checks VERSION and CHANGELOG agree,
+# tags v<version>, builds the archive (UI prebuilt), drafts a GitHub release with that version's CHANGELOG
+# section as notes, and updates the Homebrew formula in chemwor/homebrew-vario (needs the HOMEBREW_TAP_TOKEN
+# secret: a fine-grained token with contents:write on that repo). The release stays a draft until you publish it.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (must match the VERSION file), e.g. 0.1.0"
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Check VERSION and CHANGELOG
+        run: |
+          v="${{ inputs.version }}"
+          [ "$(cat VERSION)" = "$v" ] || { echo "VERSION says $(cat VERSION), not $v"; exit 1; }
+          grep -q "^## \[$v\]" CHANGELOG.md || { echo "CHANGELOG.md has no section for $v"; exit 1; }
+          git rev-parse "v$v" >/dev/null 2>&1 && { echo "tag v$v already exists"; exit 1; } || true
+
+      - name: Build
+        run: cd web && npm ci && cd .. && scripts/package.sh
+
+      - name: Release notes from CHANGELOG
+        run: |
+          v="${{ inputs.version }}"
+          awk -v v="$v" '$0 ~ "^## \\[" v "\\]" {on=1; next} on && /^## \[/ {exit} on' CHANGELOG.md > notes.md
+          printf '\n---\nInstall: `curl -fsSL https://raw.githubusercontent.com/%s/v%s/install.sh | bash` or `brew install %s/vario/vario`\n' \
+            "$GITHUB_REPOSITORY" "$v" "${GITHUB_REPOSITORY%%/*}" >> notes.md
+          cat notes.md
+
+      - name: Tag and draft the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="${{ inputs.version }}"
+          git tag "v$v" && git push origin "v$v"
+          gh release create "v$v" --draft --title "Vario $v" --notes-file notes.md \
+            "dist/vario-$v.tar.gz" "dist/vario-$v.tar.gz.sha256"
+
+      - name: Update the Homebrew formula
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          [ -n "$TAP_TOKEN" ] || { echo "::warning::HOMEBREW_TAP_TOKEN not set; formula not updated"; exit 0; }
+          v="${{ inputs.version }}"
+          owner="${GITHUB_REPOSITORY%%/*}"
+          sha="$(cut -d' ' -f1 < "dist/vario-$v.tar.gz.sha256")"
+          git clone "https://x-access-token:$TAP_TOKEN@github.com/$owner/homebrew-vario.git" tap
+          mkdir -p tap/Formula
+          sed -e "s#__REPO__#$GITHUB_REPOSITORY#g" -e "s#__VERSION__#$v#g" -e "s#__SHA256__#$sha#g" \
+            packaging/homebrew/vario.rb > tap/Formula/vario.rb
+          cd tap && git add Formula/vario.rb
+          git -c user.name="vario-release" -c user.email="vario-release@users.noreply.github.com" commit -m "vario $v"
+          git push

@@ -1,0 +1,249 @@
+@import "tailwindcss";
+
+/* Vario, "daylight hangar": warm drafting paper, inked linework, summer sky.
+   The raw palette lives in plain CSS variables, swapped per theme below. Tailwind's colour names map onto
+   them, so every existing utility (text-fg, bg-accent/10 ...) follows the theme.
+   Text tokens are deepened copies of the accent hues so all text stays WCAG AA (>= 4.5:1). */
+@theme inline {
+  --font-sans: var(--font-alegreya);
+  --font-mono: var(--font-plex-mono);
+  --font-serif: var(--font-fraunces);
+
+  --color-sunk: var(--paper-sunk);
+  --color-ground: var(--paper);
+  --color-raised: var(--paper-raised);
+  --color-hover: var(--paper-hover);
+  --color-line: var(--rule);
+  --color-line-strong: var(--rule-strong);
+
+  --color-fg: var(--ink);
+  --color-dim: var(--ink-soft);
+  --color-mute: var(--ink-mute);
+  --color-faint: var(--ink-faint);
+
+  --color-accent: var(--sun-ink);
+  --color-work: var(--sky-ink);
+  --color-ok: var(--grass-ink);
+  --color-bad: var(--rust-ink);
+
+  --color-sun: var(--sun);
+  --color-sky: var(--sky);
+  --color-sky-deep: var(--sky-deep);
+  --color-on-sun: var(--on-sun);
+
+  --shadow-card: var(--paper-shadow);
+  --shadow-float: var(--paper-shadow-float);
+}
+
+/* ---- daylight hangar (default) ----------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  --paper: #f4eddc;
+  --paper-raised: #faf6ea;
+  --paper-sunk: #eee5d0;
+  --paper-hover: #ede4ce;
+
+  --ink: #2b3a4a;
+  --ink-soft: #4a5a6a;
+  --ink-mute: #56636f;
+  --ink-faint: #58636d;
+  --rule: rgb(43 58 74 / 0.17);
+  --rule-strong: rgb(43 58 74 / 0.3);
+
+  --sky: #a8c8dc;
+  --sky-deep: #6e9bb5;
+  --grass: #7a9461;
+  --rust: #c06e52;
+  --sun: #d9a441;
+  --on-sun: #2b3a4a;
+
+  /* the same hues, deepened for text */
+  --sky-ink: #386682;
+  --grass-ink: #4d6636;
+  --rust-ink: #9c4328;
+  --sun-ink: #87590c;
+
+  /* per-session pencil tones (session rows) */
+  --sess-0: #2f6f67;
+  --sess-1: #2a6a80;
+  --sess-2: #3f5c96;
+  --sess-3: #5e4f96;
+  --sess-4: #7c4b8f;
+  --sess-5: #954468;
+  --sess-6: #566a2c;
+  --sess-7: #376f48;
+
+  --strip: #d9e5ea;
+  --wash-from: #d8e2e2; /* sky 30% on paper */
+  --wash-to: #efe3c7; /* sun 15% on paper */
+  --scrim: rgb(43 58 74 / 0.35);
+  --paper-shadow: 0 1px 0 rgb(43 58 74 / 0.05), 0 6px 14px -8px rgb(43 58 74 / 0.22);
+  --paper-shadow-float: 0 1px 0 rgb(43 58 74 / 0.06), 0 22px 44px -16px rgb(43 58 74 / 0.35);
+  --grid-line: rgb(43 58 74 / 0.04);
+  --grain-opacity: 0.035;
+  --grain-blend: multiply;
+}
+
+/* ---- night flight -------------------------------------------------------------------------
+   data-theme is always set before paint (layout.tsx): the saved choice, else prefers-color-scheme. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --paper: #1e2733;
+  --paper-raised: #26323f;
+  --paper-sunk: #19212b;
+  --paper-hover: #2c3946;
+
+  --ink: #efe6d0;
+  --ink-soft: #cfc6b2;
+  --ink-mute: #b5ad9c;
+  --ink-faint: #aba494;
+  --rule: rgb(239 230 208 / 0.13);
+  --rule-strong: rgb(239 230 208 / 0.24);
+
+  --sky: #8fb2c6;
+  --sky-deep: #6a8fa5;
+  --grass: #8fa67a;
+  --rust: #c98068;
+  --sun: #d4a957;
+  --on-sun: #1e2733;
+
+  --sky-ink: #9cbdd1;
+  --grass-ink: #a5bb8c;
+  --rust-ink: #e59c86;
+  --sun-ink: #d9b062;
+
+  --sess-0: #8ec2b8;
+  --sess-1: #86bed0;
+  --sess-2: #9db2e0;
+  --sess-3: #b4a8e0;
+  --sess-4: #cda5da;
+  --sess-5: #e0a4be;
+  --sess-6: #b8cb8a;
+  --sess-7: #9ccba6;
+
+  --strip: #223447;
+  --wash-from: #293745; /* sky-deep 14% on night */
+  --wash-to: #332f2b; /* sun 10% on night */
+  --scrim: rgb(10 14 20 / 0.6);
+  --paper-shadow: 0 1px 0 rgb(0 0 0 / 0.2), 0 8px 18px -10px rgb(0 0 0 / 0.55);
+  --paper-shadow-float: 0 1px 0 rgb(0 0 0 / 0.25), 0 24px 48px -16px rgb(0 0 0 / 0.7);
+  --grid-line: rgb(239 230 208 / 0.035);
+  --grain-opacity: 0.045;
+  --grain-blend: screen;
+}
+
+/* ---- base ---------------------------------------------------------------------------------- */
+body {
+  line-height: 1.6;
+  /* Alegreya Sans runs small next to Plex; scale by x-height so sizes and density hold */
+  font-size-adjust: ex-height 0.5;
+}
+.font-mono, code, kbd, pre { font-size-adjust: none; }
+.font-serif { font-variation-settings: "SOFT" 100; font-weight: 500; }
+
+/* paper grain: one SVG noise tile over the whole app, never repainted */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.4 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+::selection { background: color-mix(in oklab, var(--sun) 40%, transparent); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--rule-strong); border-radius: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+input[type="checkbox"] { accent-color: var(--sun); }
+
+/* focus rings are sun-gold everywhere */
+:focus-visible { outline: 2px solid var(--sun); outline-offset: 2px; }
+input:focus-visible, textarea:focus-visible { outline: none; }
+/* headings focused by script (so screen readers announce a new step) aren't controls: no ring */
+[tabindex="-1"]:focus-visible { outline: none; }
+
+@layer components {
+  /* engineering graph paper behind a panel */
+  .drafting {
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: -1px -1px;
+  }
+
+  /* inked card on the desk */
+  .inked {
+    border: 1.5px solid var(--rule);
+    border-radius: 7px;
+    background-color: var(--paper-raised);
+    box-shadow: var(--paper-shadow);
+  }
+
+  /* rubber stamp: bordered caps with a slightly uneven inking */
+  .stamp {
+    display: inline-block;
+    border: 1.5px solid currentColor;
+    border-radius: 3px;
+    padding: 0 5px;
+    line-height: 15px;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='30'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 2.6'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='30'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 2.6'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+  }
+
+  /* header: plain paper; washes sky-to-sun while briefing is armed */
+  .app-header { background-color: var(--paper); transition: background-color 0.4s; }
+  .app-header[data-armed="true"] { background-image: linear-gradient(100deg, var(--wash-from), var(--wash-to) 70%); }
+
+  /* status bar: thin blueprint strip, ink text */
+  .blueprint {
+    --ink-mute: var(--ink);
+    --ink-faint: var(--ink-soft);
+    background-color: var(--strip);
+    background-image:
+      linear-gradient(color-mix(in oklab, var(--sky-deep) 14%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklab, var(--sky-deep) 14%, transparent) 1px, transparent 1px);
+    background-size: 12px 12px;
+    border-top: 1.5px solid color-mix(in oklab, var(--sky-deep) 55%, transparent);
+  }
+
+  /* Comms: a radio log, faint ruled lines */
+  .radio-log {
+    background-image: repeating-linear-gradient(transparent 0 23px, color-mix(in oklab, var(--sky-deep) 9%, transparent) 23px 24px);
+  }
+
+  /* working session: thin wind lines drifting along the row's bottom margin */
+  .wind { position: absolute; inset: auto 0 0 0; height: 9px; overflow: hidden; pointer-events: none; }
+  .wind i {
+    position: absolute;
+    left: 0;
+    height: 1px;
+    width: 22%;
+    background: linear-gradient(90deg, transparent, currentColor 40%, currentColor 60%, transparent);
+    opacity: 0.45;
+    animation: vario-wind 3.6s linear infinite;
+  }
+  .wind i:nth-child(1) { bottom: 2px; }
+  .wind i:nth-child(2) { bottom: 5px; width: 14%; opacity: 0.3; animation-duration: 4.8s; animation-delay: -1.6s; }
+  .wind i:nth-child(3) { bottom: 8px; width: 9%; opacity: 0.22; animation-duration: 5.6s; animation-delay: -3.1s; }
+}
+
+@keyframes vario-blink { 50% { opacity: 0.25; } }
+.blink { animation: vario-blink 1.4s steps(2, jump-none) infinite; }
+
+@keyframes vario-pulse { 50% { opacity: 0.35; transform: scale(0.7); } }
+.pulse { animation: vario-pulse 1.2s ease-in-out infinite; }
+
+@keyframes vario-wind { from { transform: translateX(-110%); } to { transform: translateX(560%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse, .blink, .wind i { animation: none; }
+  .wind i:nth-child(1) { transform: translateX(120%); }
+  .wind i:nth-child(n + 2) { display: none; }
+  .app-header { transition: none; }
+}

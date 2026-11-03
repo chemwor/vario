@@ -1,0 +1,65 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Backend dependencies
+        run: |
+          cd backend
+          uv venv --python 3.12 .venv
+          uv pip install --python .venv/bin/python -r pyproject.toml --extra dev
+      - name: Backend lint
+        run: cd backend && .venv/bin/ruff check app tests
+      - name: Backend tests
+        run: cd backend && .venv/bin/python -m pytest -q
+
+      - name: Web dependencies
+        run: cd web && npm ci
+      - name: Web lint and types
+        run: cd web && npx eslint app components lib && npx next typegen >/dev/null && npx tsc --noEmit
+      - name: Web build (static export)
+        run: cd web && npx next build && test -f out/index.html
+
+      - name: Shell scripts parse
+        run: bash -n install.sh bin/vario scripts/*.sh voice/hooks/*.sh
+
+      - name: Install from this checkout and run doctor
+        env:
+          VARIO_HOME: ${{ runner.temp }}/vario-home
+          VARIO_BIN_DIR: ${{ runner.temp }}/bin
+          VARIO_NO_START: "1"
+        run: |
+          scripts/package.sh
+          # claude and jq are checked by the installer; give CI stand-ins so the install itself is what's tested
+          mkdir -p "$RUNNER_TEMP/stubs" && printf '#!/bin/sh\necho "0.0.0 (stub)"\n' > "$RUNNER_TEMP/stubs/claude" && chmod +x "$RUNNER_TEMP/stubs/claude"
+          export PATH="$RUNNER_TEMP/stubs:$PATH"
+          command -v jq || { sudo apt-get install -y jq || brew install jq; }
+          VARIO_SOURCE="$(ls dist/vario-*.tar.gz)" bash install.sh
+          "$VARIO_BIN_DIR/vario" version
+          "$VARIO_BIN_DIR/vario" doctor || true
+          "$VARIO_BIN_DIR/vario" start --no-open && "$VARIO_BIN_DIR/vario" status && "$VARIO_BIN_DIR/vario" stop
+          "$VARIO_BIN_DIR/vario" uninstall --data --yes
+          test ! -e "$VARIO_BIN_DIR/vario"

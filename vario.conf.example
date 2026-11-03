@@ -1,0 +1,38 @@
+# Vario config. Copy to vario.conf (next to the Makefile) and restart the backend.
+# (A pallas.conf from before the rename is still read when there is no vario.conf.)
+# Environment variables override anything here.
+
+# personal | work
+PROFILE=personal
+
+# Speech-to-text: local Whisper on this Mac (the default). webspeech = the browser's speech service
+# (sends audio to Google; ignored in the work profile).
+#STT=local
+#STT_ENGINE=auto                                 # auto | mlx | whispercpp (auto: mlx on Apple Silicon)
+#STT_MODEL=mlx-community/whisper-small.en-mlx    # or mlx-community/whisper-large-v3-turbo
+#WHISPER_CPP_MODEL=/path/to/ggml-small.en.bin    # whisper.cpp: used directly, or as mlx's fallback
+#STT_VOCAB=Kubernetes, Postgres                     # extra words to expect (project names are automatic)
+
+# A working session with no tool calls or results for this many minutes is badged "possibly stuck"
+# and files one low-urgency report with its last 3 transcript lines.
+#STUCK_MINUTES=10
+
+# What "retry <project>" (and the Retry button on error rows) types into the session. {error} is its last error.
+#RETRY_MESSAGE=That last attempt failed ({error}). Please try it again.
+
+# Context meters: tokens a session's model holds. Default: 1M for [1m] models (or when settings.json defaults
+# that model family to [1m]), else 200k. A session crossing 90% files one low-urgency wrap-up report.
+#CONTEXT_WINDOW=1000000
+
+# Comms: ignored utterances (heard while speaking, muted, busy) are deleted after this many days.
+#COMMS_RETENTION_DAYS=3
+
+# Confidence gate (these live in ~/.claude/hooks/voice.conf, read fresh on every utterance):
+#   MIN_DISPATCH_CONF=0.40   below this an utterance is logged "rejected: low confidence" and never acted on
+#   STRICT_CONF=0.70         approve/deny/yes/no/skip/retry and anything sent to a session need this, or an
+#                            explicit "confirm" / click on the confirm card (silence never sends them)
+#   EXPLICIT_HOLD_S=60       how long that card waits before cancelling
+
+# Aviation wording for session states on screen: in flight / holding / landed / mayday.
+# UI labels only; spoken alerts keep the plain words. Restart the web app after changing it.
+#FLIGHT_SPEAK=off

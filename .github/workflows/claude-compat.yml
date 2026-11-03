@@ -1,0 +1,44 @@
+name: Claude Code compatibility
+# Weekly: install the newest Claude Code, run the test suite against it, and if everything passes open a PR that
+# bumps tested-claude-version.txt. `vario doctor` warns when your installed claude is newer than that file.
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  compat:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install the latest Claude Code
+        run: npm install -g @anthropic-ai/claude-code && claude --version
+      - name: Tests (with the Agent SDK resolved fresh)
+        run: |
+          cd backend
+          uv venv --python 3.12 .venv
+          uv pip install --python .venv/bin/python -r pyproject.toml --extra dev --upgrade
+          .venv/bin/python -m pytest -q
+      - name: Bump tested-claude-version.txt
+        id: bump
+        run: |
+          new="$(claude --version | awk '{print $1}')"
+          old="$(cat tested-claude-version.txt)"
+          echo "new=$new" >> "$GITHUB_OUTPUT"
+          [ "$new" != "$old" ] && echo "$new" > tested-claude-version.txt && echo "changed=1" >> "$GITHUB_OUTPUT" || true
+      - name: Open a PR
+        if: steps.bump.outputs.changed == '1'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: claude-compat/${{ steps.bump.outputs.new }}
+          title: "Tested with Claude Code ${{ steps.bump.outputs.new }}"
+          commit-message: "Tested with Claude Code ${{ steps.bump.outputs.new }}"
+          body: "The test suite passed against Claude Code ${{ steps.bump.outputs.new }}."

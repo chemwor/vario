@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# vario: the command-line entry point. Finds the app folder (this script may be a symlink), makes sure the
+# Python environment for this version exists (created with uv on first run), then runs app.cli.
+set -euo pipefail
+SELF="${BASH_SOURCE[0]}"
+while [ -L "$SELF" ]; do
+  dir="$(cd "$(dirname "$SELF")" && pwd)"; SELF="$(readlink "$SELF")"; [[ "$SELF" = /* ]] || SELF="$dir/$SELF"
+done
+ROOT="$(cd "$(dirname "$SELF")/.." && pwd)"
+export VARIO_HOME="${VARIO_HOME:-$HOME/.local/share/vario}"
+VERSION="$(cat "$ROOT/VERSION" 2>/dev/null || echo dev)"
+VENV="${VARIO_VENV:-$VARIO_HOME/venv/$VERSION}"
+if [ ! -x "$VENV/bin/python" ] || [ "$ROOT/backend/pyproject.toml" -nt "$VENV/.installed" ]; then
+  command -v uv >/dev/null 2>&1 || { echo "vario needs uv: curl -LsSf https://astral.sh/uv/install.sh | sh  (or brew install uv)" >&2; exit 1; }
+  echo "Setting up Vario's Python environment (once per version)..." >&2
+  export UV_CACHE_DIR="${UV_CACHE_DIR:-$HOME/.cache/uv}"
+  uv venv -q --python 3.12 "$VENV" >&2
+  uv pip install -q --python "$VENV/bin/python" -r "$ROOT/backend/pyproject.toml" >&2
+  touch "$VENV/.installed"
+fi
+cd "$ROOT/backend"
+exec "$VENV/bin/python" -m app.cli "$@"

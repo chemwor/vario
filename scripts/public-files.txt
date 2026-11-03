@@ -1,0 +1,32 @@
+# What goes into the public repo and release archives (paths relative to the repo root; folders are recursive).
+# Everything else (local data, config, screenshots, personal notes) stays out by default.
+.github
+.gitignore
+CHANGELOG.md
+CONTRIBUTING.md
+LICENSE
+Makefile
+README.md
+SECURITY.md
+VERSION
+install.sh
+tested-claude-version.txt
+vario.conf.example
+bin/vario
+backend/pyproject.toml
+backend/app
+backend/tests
+packaging
+scripts/package.sh
+scripts/publish.sh
+scripts/public-files.txt
+voice
+web/app
+web/components
+web/lib
+web/eslint.config.mjs
+web/next.config.ts
+web/package.json
+web/package-lock.json
+web/tsconfig.json
+docs/reference.md

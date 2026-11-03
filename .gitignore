@@ -1,0 +1,31 @@
+# Your data, config and logs never belong in the repo.
+backend/data/
+*.sqlite3
+*.sqlite3-*
+vario.conf
+pallas.conf
+mission-control.conf
+.private-terms
+*.log
+.env*
+
+# Models and runtimes (downloaded on first run, never committed)
+*.safetensors
+*.npz
+*.gguf
+*.bin
+hf/
+
+# Build output and dependencies
+backend/.venv/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+web/node_modules/
+web/.next/
+web/out/
+web/next-env.d.ts
+*.tsbuildinfo
+dist/
+.DS_Store
