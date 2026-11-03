@@ -19,6 +19,7 @@ backend/tests
 packaging
 scripts/package.sh
 scripts/publish.sh
+scripts/sync-public.sh
 scripts/public-files.txt
 voice
 web/app
@@ -30,3 +31,8 @@ web/package.json
 web/package-lock.json
 web/tsconfig.json
 docs/reference.md
+docs/inbox.png
+docs/briefing.png
+scripts/screenshots.py
+scripts/demo_gif.py
+scripts/ocr.swift

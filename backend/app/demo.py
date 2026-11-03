@@ -139,3 +139,40 @@ def _run(demo_home: Path):
 
 if __name__ == "__main__":
     _run(Path(sys.argv[1]).resolve())
+
+
+# --- replies in the demo ------------------------------------------------------------------------------------
+def is_demo_session(t) -> bool:
+    """A made-up session in a running demo: never a real terminal."""
+    return bool(t) and os.environ.get("VARIO_DEMO") == "1" and str(getattr(t, "cwd", "") or "").startswith("/demo/")
+
+
+async def reply(t, text: str):
+    """Stand-in for typing into a terminal: the reply goes into the fake transcript, and the session carries on
+    (a tool call, then a short final answer), so approving in the demo looks like the real loop."""
+    import asyncio
+    path, cwd, sid = Path(t.path), t.cwd, t.id
+
+    def add(line):
+        line.update(cwd=cwd, sessionId=sid, uuid=str(uuid.uuid4()), timestamp=_iso(time.time()))
+        with open(path, "a") as f:
+            f.write(json.dumps(line) + "\n")
+
+    async def go():
+        add({"type": "user", "message": {"role": "user", "content": text}})
+        await asyncio.sleep(1.5)
+        tid = "toolu_" + uuid.uuid4().hex[:20]
+        cmd = "make migrate ENV=staging"
+        add({"type": "assistant", "message": {"model": MODEL, "role": "assistant", "stop_reason": "tool_use",
+                                              "usage": {"input_tokens": 12, "cache_read_input_tokens": 41_000},
+                                              "content": [{"type": "tool_use", "id": tid, "name": "Bash",
+                                                           "input": {"command": cmd}}]}})
+        await asyncio.sleep(3)
+        add({"type": "user", "message": {"role": "user", "content": [{"type": "tool_result", "tool_use_id": tid,
+                                                                      "content": "Applied 0042_invoices (1.8s)."}]}})
+        await asyncio.sleep(1)
+        add({"type": "assistant", "message": {"model": MODEL, "role": "assistant", "stop_reason": "end_turn",
+                                              "usage": {"input_tokens": 20, "cache_read_input_tokens": 42_000},
+                                              "content": [{"type": "text", "text": "Done: 0042 is applied on staging. "
+                                                           "The orders lock lasted 1.8 seconds and nothing errored."}]}})
+    asyncio.create_task(go())

@@ -284,7 +284,7 @@ export function usePushToTalk(
     r.onerror = (e) => {
       trace("error", e.error);
       if (e.error === "not-allowed" || e.error === "service-not-allowed")
-        setError("Microphone blocked: allow mic access for localhost:3000 in the browser's site settings");
+        setError(`Microphone blocked: allow mic access for ${location.host} in the browser's site settings`);
       else if (e.error === "network") setError("Speech service unreachable (Chrome needs internet for Web Speech)");
       else if (e.error === "audio-capture") setError("No microphone found");
       else if (e.error !== "aborted" && e.error !== "no-speech") setError(`Mic error: ${e.error}`);

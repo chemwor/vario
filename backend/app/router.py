@@ -12,7 +12,7 @@ import re
 import time
 from dataclasses import dataclass, field
 
-from . import db, reach
+from . import db, demo, reach
 from .music import music
 from .alerts import compressor
 from .commands import find_session
@@ -285,6 +285,9 @@ class Router:
             return Result(it.action, f"Sent to {name}.", routed_to=sid)
 
         t = self.terminal.get(sid)                          # terminal session: tmux, then cmux
+        if demo.is_demo_session(t):                         # `vario demo`: made-up session, fake transcript
+            await demo.reply(t, it.text or ("Yes, go ahead." if allow else "No."))
+            return Result(it.action, f"Sent to {name}.", routed_to="demo")
         pane = await reach.tmux_pane_for(t.cwd) if t else None
         if not pane:
             cm = await reach.cmux_surface_for(sid)
@@ -325,6 +328,9 @@ class Router:
         import asyncio
         t = self.terminal.get(sid)
         name = t.name if t else "that session"
+        if demo.is_demo_session(t):
+            await demo.reply(t, text)
+            return Result("message", f"Sent to {name}.", routed_to="demo")
         route = await self.terminal_route(sid)
         if not route:
             return Result("message", f"I can't reach {name}'s terminal (not in tmux or a cmux pane).", answered=False)

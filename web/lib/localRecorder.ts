@@ -44,7 +44,7 @@ export async function startLocalRecorder(o: LocalRecorderOpts): Promise<LocalRec
   } catch (e) {
     const name = (e as { name?: string }).name ?? "Error";
     if (name === "NotAllowedError" || name === "SecurityError")
-      o.onError("Microphone blocked: allow mic access for localhost:3000 in the browser's site settings", "not-allowed");
+      o.onError(`Microphone blocked: allow mic access for ${location.host} in the browser's site settings`, "not-allowed");
     else if (name === "NotFoundError") o.onError("No microphone found", "audio-capture");
     else o.onError(`Mic failed to start: ${e}`, name);
     return null;

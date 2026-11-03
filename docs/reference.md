@@ -144,6 +144,8 @@ A `billing--anything.md` filename also sets the project.
 
 ## Briefing mode
 
+![Briefing mode: the banner reads the current item, the caption listens for the answer](briefing.png)
+
 Arm it with the **▶ Briefing** button, **⌘⇧B**, or by saying "start briefing"; Athena answers
 "Athena online" with the queue count. Disarm with "stop briefing" ("Athena standing by").
 With **auto** ticked (next to the button, on by default) a new report arms briefing by itself while a

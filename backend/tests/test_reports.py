@@ -23,3 +23,14 @@ async def test_three_identical_errors_collapse_and_escalate():
     assert seen[-1]["repeat"] == 3
     assert seen[-1]["type"] == "decision_needed"
     assert "failed the same way 3 times" in seen[-1]["summary"]
+
+
+def test_demo_reply_only_for_demo_sessions(monkeypatch):
+    from types import SimpleNamespace
+    from app import demo
+    fake = SimpleNamespace(cwd="/demo/billing-service")
+    monkeypatch.delenv("VARIO_DEMO", raising=False)
+    assert not demo.is_demo_session(fake)                      # a real instance never fakes a reply
+    monkeypatch.setenv("VARIO_DEMO", "1")
+    assert demo.is_demo_session(fake)
+    assert not demo.is_demo_session(SimpleNamespace(cwd="/Users/x/code/billing-service"))

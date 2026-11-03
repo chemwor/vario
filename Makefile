@@ -6,6 +6,7 @@
 #   make test      backend tests
 #   make dist      release archive in dist/ (UI prebuilt)
 #   make publish   assemble the public repo in dist/public after a privacy check (never pushes)
+#   make screenshots / make demo-gif   README images from a fresh `vario demo` (made-up data only)
 SHELL := /bin/bash
 API_PORT ?= 8787
 WEB_PORT ?= 3000
@@ -13,7 +14,7 @@ export UV_CACHE_DIR ?= $(HOME)/.cache/uv
 export NEXT_TELEMETRY_DISABLED := 1
 PY := backend/.venv/bin/python
 
-.PHONY: setup dev api web build check lint test dist publish clean
+.PHONY: setup dev api web build check lint test dist publish clean demo-reset screenshots demo-gif
 
 setup:
 	cd backend && uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python -r pyproject.toml --extra dev
@@ -53,6 +54,21 @@ dist: build
 
 publish:
 	scripts/publish.sh
+
+# A fresh demo: its own data folder is reset (never your real data), then started without opening a browser.
+DEMO_HOME := $(or $(VARIO_HOME),$(HOME)/.local/share/vario)/demo
+PW := uv run --no-project --with playwright python
+demo-reset: build
+	bin/vario demo --stop >/dev/null 2>&1 || true
+	rm -rf "$(DEMO_HOME)"
+	bin/vario demo --no-open
+
+screenshots: demo-reset
+	$(PW) scripts/screenshots.py
+	@echo "Check them: swift scripts/ocr.swift docs/inbox.png docs/briefing.png | grep -iFf .private-terms && echo LEAK || echo clean"
+
+demo-gif: demo-reset
+	$(PW) scripts/demo_gif.py
 
 clean:
 	rm -rf backend/.venv web/node_modules web/.next web/out dist

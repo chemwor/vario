@@ -21,8 +21,29 @@ done
 terms=("$HOME" "$(whoami)")
 [ -f "$ROOT/.private-terms" ] && while IFS= read -r t; do [ -n "$t" ] && terms+=("$t"); done < "$ROOT/.private-terms"
 fail=0
+# Text that may appear publicly though it contains a term (the GitHub handle in URLs, the README byline):
+# scripts/public-allow.txt, "<path or *><TAB><exact text>". Allowed text only counts in the file it names.
+allow_path=(); allow_text=()
+if [ -f "$ROOT/scripts/public-allow.txt" ]; then
+  while IFS=$'\t' read -r ap at; do
+    [ -z "$ap" ] || [ "${ap#\#}" != "$ap" ] || [ -z "$at" ] && continue
+    allow_path+=("$ap"); allow_text+=("$at")
+  done < "$ROOT/scripts/public-allow.txt"
+fi
+strip_allowed() {      # $1 = file: its text with the phrases allowed in it removed
+  local text rel i; text="$(cat "$1")"; rel="${1#"$DEST"/}"
+  for i in "${!allow_text[@]}"; do
+    if [ "${allow_path[$i]}" = "*" ] || [ "${allow_path[$i]}" = "$rel" ]; then text="${text//"${allow_text[$i]}"/}"; fi
+  done
+  printf '%s' "$text"
+}
 for t in "${terms[@]}"; do
-  if hits="$(grep -rIil --exclude=package-lock.json -F -- "$t" "$DEST" 2>/dev/null)"; [ -n "$hits" ]; then
+  hits=""
+  for f in $(grep -rIil --exclude=package-lock.json -F -- "$t" "$DEST" 2>/dev/null); do
+    strip_allowed "$f" | grep -qiF -- "$t" && hits+="$f"$'\n'
+  done
+  hits="${hits%$'\n'}"
+  if [ -n "$hits" ]; then
     echo "✗ personal term found ($t):" >&2; echo "$hits" | sed "s#$DEST/#  #" >&2; fail=1
   fi
 done

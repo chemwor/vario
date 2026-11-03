@@ -30,7 +30,7 @@ class Vario < Formula
 
   test do
     system "bash", "-n", libexec/"bin/vario"
-    assert_predicate libexec/"web/out/index.html", :exist?
+    assert_path_exists libexec/"web/out/index.html"
     assert_equal version.to_s, (libexec/"VERSION").read.strip
   end
 end

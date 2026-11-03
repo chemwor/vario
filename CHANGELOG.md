@@ -10,6 +10,11 @@ its GitHub release notes, so write entries for people who use Vario, not for peo
 - Research playbooks: competition, market, features and end-user research aimed at a session's product.
 - Test previews: test runs a session makes (pytest, vitest, jest, go test, cargo test, npm test and more) show
   on its row (✓ 27 passed / ✗ 1 failed / 28) and in a Tests view in its pane, with failing tests and output.
+- `make screenshots` and `make demo-gif`: README images recorded from a fresh `vario demo`.
+- In `vario demo`, approving or replying to a made-up session now plays out (it continues to done).
+
+### Fixed
+- The "microphone blocked" message named localhost:3000 instead of the address Vario is actually on.
 
 ## [0.1.0] - 2026-11-01
 

@@ -1,8 +1,13 @@
 # Vario
 
-<!-- GIF: a 20-second loop. A session hits a permission prompt, Vario speaks it, you say "approve", the session
-     continues. Record it with `vario demo` so no real work is on screen. Save as docs/vario.gif and replace
-     this comment with: ![Vario](docs/vario.gif) -->
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Platform: macOS arm64 | Linux](https://img.shields.io/badge/platform-macOS%20arm64%20%7C%20Linux-lightgrey.svg)
+[![CI](https://github.com/chemwor/vario/actions/workflows/ci.yml/badge.svg)](https://github.com/chemwor/vario/actions/workflows/ci.yml)
+[![Version 0.1.0](https://img.shields.io/badge/version-0.1.0-orange.svg)](CHANGELOG.md)
+
+<!-- GIF: a 20-second loop. A decision arrives, its evidence opens, a spoken "approve" goes through the confirm
+     card, and the session carries on to done. `make demo-gif` records it from a fresh `vario demo` (made-up data)
+     and writes docs/vario.gif. Replace this comment with: ![Vario](docs/vario.gif) -->
 
 **A decision inbox for people running many Claude Code sessions at once, with a voice that runs on your own
 machine.** Dashboards for agents usually show you sessions: tabs to watch, logs to scroll. Vario shows you
@@ -12,12 +17,24 @@ reads them to you, and takes your spoken answer back to the right session. Speec
 transcribes on your machine, Kokoro speaks on your machine, and no audio ever leaves it. You can look away from
 the screen and still unblock five agents.
 
+![The Vario inbox at night: decisions first, one selected with the diff it's about](docs/inbox.png)
+<sub>The inbox (night theme, `vario demo` data): a decision selected, with the file it wrote as evidence.</sub>
+
+### How it sounds
+
+> **Vario:** billing-service: Migration 0042 is written. Run it against staging now? It locks orders for about 20 seconds.<br>
+> **You:** Approve.<br>
+> **Vario:** Approving billing-service. Sent to billing-service.
+
 Vario is an opinionated personal tool, shared as-is. It runs on **macOS (Apple Silicon)** and **Linux**.
 **Windows isn't supported** in v0.1 (WSL may work, untested).
 
 ## Quickstart (60 seconds)
 
-You need [Claude Code](https://docs.claude.com/claude-code) (logged in), [uv](https://docs.astral.sh/uv/) and `jq`.
+**Requirements:** macOS 13+ on Apple Silicon, or Linux · about 2 GB of disk for the voice models · Claude Code
+installed and logged in · uv and jq.
+
+Get [Claude Code](https://docs.claude.com/claude-code), [uv](https://docs.astral.sh/uv/) and `jq` first if you don't have them.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/chemwor/vario/main/install.sh | bash
@@ -55,12 +72,22 @@ DEMO, without touching your real data.
 - **Session board:** dashboard sessions and terminal sessions side by side, ordered error → blocked → working →
   done. Each shows a context meter, how its last turn went (done / done-check / failed) and stuck detection, and
   each decision has an evidence panel with the diff or command it's about.
+- **Decision log:** every answer is recorded: what you said, the action it became and where it was routed.
+  Filter it by project and copy it as Markdown.
 - **Safe by default:** a confidence gate means mumbles are never acted on. See [the gate](#the-confidence-gate).
 - **Research on your product:** from any session, run competition, market, features or end-user research about
   the product that session is building. Vario hands the scout the project's README and what the session is
   working on; the report lands in the inbox, is saved as markdown in `~/Vario/research/<product>/`, and one
   click hands it to the session ("read this, then propose a plan"). Each kind is a markdown playbook you can
   edit. Off in the work profile.
+
+## Why not a session dashboard?
+
+Happy, Omnara, claude-view and Claude Code's built-in agents view are good tools, and they organize *sessions*:
+what each agent is doing, its log, its cost. Vario organizes *decisions*: one queue of what needs you, across
+every session, in priority order. Where those tools offer voice (Happy, Omnara), it runs through a hosted voice
+service; Vario's speech in and out runs on your machine. And every answer you give lands in an auditable
+decision log.
 
 ## How it works
 
@@ -212,3 +239,11 @@ the changes.
 ## License
 
 [MIT](LICENSE)
+
+---
+
+Built by Eric Chemwor · [Astro Digital Labs](https://astrodigitallabs.com/vario)
+
+**Acknowledgments:** [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) for the voice,
+[Whisper](https://github.com/openai/whisper) for speech-to-text, and [mlx-audio](https://github.com/Blaizzy/mlx-audio)
+for running them on Apple Silicon.
